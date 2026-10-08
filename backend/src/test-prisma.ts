@@ -2,7 +2,7 @@ import prisma from "../config/prisma.js"
 
 const main = async () => {
     try {
-        const users = await prisma.users.findMany();
+        const users = await prisma.user.findMany();
 
         console.log("User Fetch using Prisma", users)
 

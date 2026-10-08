@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.10.0",
   "engineVersion": "0edf323efd1d98336f3f0a68684b56f689b900d3",
   "activeProvider": "postgresql",
-  "inlineSchema": "generator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel users {\n  id       Int    @id @default(autoincrement())\n  name     String @db.VarChar(255)\n  email    String @unique @db.VarChar(255)\n  password String @db.VarChar(255)\n}\n",
+  "inlineSchema": "generator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  id       Int       @id @default(autoincrement())\n  name     String    @db.VarChar(255)\n  email    String    @unique @db.VarChar(255)\n  password String    @db.VarChar(255)\n  posts    Post[]\n  comments Comment[]\n\n  @@map(\"users\")\n}\n\nmodel Post {\n  id            Int       @id @default(autoincrement())\n  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)\n  userId        Int\n  comment       Comment[]\n  title         String\n  description   String\n  comment_count Int       @default(0)\n  created_at    DateTime  @default(now())\n}\n\nmodel Comment {\n  id         String   @id @default(uuid())\n  content    String\n  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)\n  postId     Int\n  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n  userId     Int\n  created_at DateTime @default(now())\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -32,10 +32,10 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"users\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null,\"schema\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"posts\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"PostToUser\"},{\"name\":\"comments\",\"kind\":\"object\",\"type\":\"Comment\",\"relationName\":\"CommentToUser\"}],\"dbName\":\"users\",\"schema\":null},\"Post\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"PostToUser\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"comment\",\"kind\":\"object\",\"type\":\"Comment\",\"relationName\":\"CommentToPost\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"comment_count\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null,\"schema\":null},\"Comment\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"post\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"CommentToPost\"},{\"name\":\"postId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"CommentToUser\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null,\"schema\":null}},\"enums\":{},\"types\":{}}")
 config.parameterizationSchema = {
-  strings: JSON.parse("[\"where\",\"users.findUnique\",\"users.findUniqueOrThrow\",\"orderBy\",\"cursor\",\"users.findFirst\",\"users.findFirstOrThrow\",\"users.findMany\",\"data\",\"users.createOne\",\"users.createMany\",\"users.createManyAndReturn\",\"users.updateOne\",\"users.updateMany\",\"users.updateManyAndReturn\",\"create\",\"update\",\"users.upsertOne\",\"users.deleteOne\",\"users.deleteMany\",\"having\",\"_count\",\"_avg\",\"_sum\",\"_min\",\"_max\",\"users.groupBy\",\"users.aggregate\",\"AND\",\"OR\",\"NOT\",\"id\",\"name\",\"email\",\"password\",\"equals\",\"in\",\"notIn\",\"lt\",\"lte\",\"gt\",\"gte\",\"contains\",\"startsWith\",\"endsWith\",\"not\",\"set\",\"increment\",\"decrement\",\"multiply\",\"divide\"]"),
-  graph: "KwsQBxwAACIAMB0AAAQAEB4AACIAMB8CAAAAASABACQAISEBAAAAASIBACQAIQEAAAABACABAAAAAQAgBxwAACIAMB0AAAQAEB4AACIAMB8CACMAISABACQAISEBACQAISIBACQAIQADAAAABAAgAwAABQAwBAAAAQAgAwAAAAQAIAMAAAUAMAQAAAEAIAMAAAAEACADAAAFADAEAAABACAEHwIAAAABIAEAAAABIQEAAAABIgEAAAABAQgAAAkAIAQfAgAAAAEgAQAAAAEhAQAAAAEiAQAAAAEBCAAACwAwAQgAAAsAMAQfAgArACEgAQAqACEhAQAqACEiAQAqACECAAAAAQAgCAAADgAgBB8CACsAISABACoAISEBACoAISIBACoAIQIAAAAEACAIAAAQACACAAAABAAgCAAAEAAgAwAAAAEAIA8AAAkAIBAAAA4AIAEAAAABACABAAAABAAgBRUAACUAIBYAACYAIBcAACkAIBgAACgAIBkAACcAIAccAAAaADAdAAAXABAeAAAaADAfAgAbACEgAQAcACEhAQAcACEiAQAcACEDAAAABAAgAwAAFgAwFAAAFwAgAwAAAAQAIAMAAAUAMAQAAAEAIAccAAAaADAdAAAXABAeAAAaADAfAgAbACEgAQAcACEhAQAcACEiAQAcACENFQAAHgAgFgAAIQAgFwAAHgAgGAAAHgAgGQAAHgAgIwIAAAABJAIAAAAEJQIAAAAEJgIAAAABJwIAAAABKAIAAAABKQIAAAABLQIAIAAhDhUAAB4AIBgAAB8AIBkAAB8AICMBAAAAASQBAAAABCUBAAAABCYBAAAAAScBAAAAASgBAAAAASkBAAAAASoBAAAAASsBAAAAASwBAAAAAS0BAB0AIQ4VAAAeACAYAAAfACAZAAAfACAjAQAAAAEkAQAAAAQlAQAAAAQmAQAAAAEnAQAAAAEoAQAAAAEpAQAAAAEqAQAAAAErAQAAAAEsAQAAAAEtAQAdACEIIwIAAAABJAIAAAAEJQIAAAAEJgIAAAABJwIAAAABKAIAAAABKQIAAAABLQIAHgAhCyMBAAAAASQBAAAABCUBAAAABCYBAAAAAScBAAAAASgBAAAAASkBAAAAASoBAAAAASsBAAAAASwBAAAAAS0BAB8AIQ0VAAAeACAWAAAhACAXAAAeACAYAAAeACAZAAAeACAjAgAAAAEkAgAAAAQlAgAAAAQmAgAAAAEnAgAAAAEoAgAAAAEpAgAAAAEtAgAgACEIIwgAAAABJAgAAAAEJQgAAAAEJggAAAABJwgAAAABKAgAAAABKQgAAAABLQgAIQAhBxwAACIAMB0AAAQAEB4AACIAMB8CACMAISABACQAISEBACQAISIBACQAIQgjAgAAAAEkAgAAAAQlAgAAAAQmAgAAAAEnAgAAAAEoAgAAAAEpAgAAAAEtAgAeACELIwEAAAABJAEAAAAEJQEAAAAEJgEAAAABJwEAAAABKAEAAAABKQEAAAABKgEAAAABKwEAAAABLAEAAAABLQEAHwAhAAAAAAABLgEAAAABBS4CAAAAAS8CAAAAATACAAAAATECAAAAATICAAAAAQAAAAAFFQAGFgAHFwAIGAAJGQAKAAAAAAAFFQAGFgAHFwAIGAAJGQAKAQIBAgMBBQYBBgcBBwgBCQoBCgwCCw0DDA8BDRECDhIEERMBEhQBExUCGhgFGxkL"
+  strings: JSON.parse("[\"where\",\"orderBy\",\"cursor\",\"user\",\"post\",\"comment\",\"_count\",\"posts\",\"comments\",\"User.findUnique\",\"User.findUniqueOrThrow\",\"User.findFirst\",\"User.findFirstOrThrow\",\"User.findMany\",\"data\",\"User.createOne\",\"User.createMany\",\"User.createManyAndReturn\",\"User.updateOne\",\"User.updateMany\",\"User.updateManyAndReturn\",\"create\",\"update\",\"User.upsertOne\",\"User.deleteOne\",\"User.deleteMany\",\"having\",\"_avg\",\"_sum\",\"_min\",\"_max\",\"User.groupBy\",\"User.aggregate\",\"Post.findUnique\",\"Post.findUniqueOrThrow\",\"Post.findFirst\",\"Post.findFirstOrThrow\",\"Post.findMany\",\"Post.createOne\",\"Post.createMany\",\"Post.createManyAndReturn\",\"Post.updateOne\",\"Post.updateMany\",\"Post.updateManyAndReturn\",\"Post.upsertOne\",\"Post.deleteOne\",\"Post.deleteMany\",\"Post.groupBy\",\"Post.aggregate\",\"Comment.findUnique\",\"Comment.findUniqueOrThrow\",\"Comment.findFirst\",\"Comment.findFirstOrThrow\",\"Comment.findMany\",\"Comment.createOne\",\"Comment.createMany\",\"Comment.createManyAndReturn\",\"Comment.updateOne\",\"Comment.updateMany\",\"Comment.updateManyAndReturn\",\"Comment.upsertOne\",\"Comment.deleteOne\",\"Comment.deleteMany\",\"Comment.groupBy\",\"Comment.aggregate\",\"AND\",\"OR\",\"NOT\",\"id\",\"content\",\"postId\",\"userId\",\"created_at\",\"equals\",\"in\",\"notIn\",\"lt\",\"lte\",\"gt\",\"gte\",\"not\",\"contains\",\"startsWith\",\"endsWith\",\"title\",\"description\",\"comment_count\",\"name\",\"email\",\"password\",\"every\",\"some\",\"none\",\"is\",\"isNot\",\"connectOrCreate\",\"upsert\",\"createMany\",\"set\",\"disconnect\",\"delete\",\"connect\",\"updateMany\",\"deleteMany\",\"increment\",\"decrement\",\"multiply\",\"divide\"]"),
+  graph: "vQEhMAkHAABiACAIAABjACBBAABfADBCAAAQABBDAABfADBEAgAAAAFXAQBhACFYAQAAAAFZAQBhACEBAAAAAQAgCwMAAGcAIAUAAGMAIEEAAGgAMEIAAAMAEEMAAGgAMEQCAGAAIUcCAGAAIUhAAGUAIVQBAGEAIVUBAGEAIVYCAGAAIQIDAACrAQAgBQAAqQEAIAsDAABnACAFAABjACBBAABoADBCAAADABBDAABoADBEAgAAAAFHAgBgACFIQABlACFUAQBhACFVAQBhACFWAgBgACEDAAAAAwAgAQAABAAwAgAABQAgCgMAAGcAIAQAAGYAIEEAAGQAMEIAAAcAEEMAAGQAMEQBAGEAIUUBAGEAIUYCAGAAIUcCAGAAIUhAAGUAIQIDAACrAQAgBAAAqgEAIAoDAABnACAEAABmACBBAABkADBCAAAHABBDAABkADBEAQAAAAFFAQBhACFGAgBgACFHAgBgACFIQABlACEDAAAABwAgAQAACAAwAgAACQAgAQAAAAcAIAMAAAAHACABAAAIADACAAAJACABAAAAAwAgAQAAAAcAIAEAAAABACAJBwAAYgAgCAAAYwAgQQAAXwAwQgAAEAAQQwAAXwAwRAIAYAAhVwEAYQAhWAEAYQAhWQEAYQAhAgcAAKgBACAIAACpAQAgAwAAABAAIAEAABEAMAIAAAEAIAMAAAAQACABAAARADACAAABACADAAAAEAAgAQAAEQAwAgAAAQAgBgcAAKYBACAIAACnAQAgRAIAAAABVwEAAAABWAEAAAABWQEAAAABAQ4AABUAIAREAgAAAAFXAQAAAAFYAQAAAAFZAQAAAAEBDgAAFwAwAQ4AABcAMAYHAACPAQAgCAAAkAEAIEQCAHAAIVcBAG4AIVgBAG4AIVkBAG4AIQIAAAABACAOAAAaACAERAIAcAAhVwEAbgAhWAEAbgAhWQEAbgAhAgAAABAAIA4AABwAIAIAAAAQACAOAAAcACADAAAAAQAgFQAAFQAgFgAAGgAgAQAAAAEAIAEAAAAQACAFBgAAigEAIBsAAIsBACAcAACOAQAgHQAAjQEAIB4AAIwBACAHQQAAXgAwQgAAIwAQQwAAXgAwRAIAVAAhVwEAUwAhWAEAUwAhWQEAUwAhAwAAABAAIAEAACIAMBoAACMAIAMAAAAQACABAAARADACAAABACABAAAABQAgAQAAAAUAIAMAAAADACABAAAEADACAAAFACADAAAAAwAgAQAABAAwAgAABQAgAwAAAAMAIAEAAAQAMAIAAAUAIAgDAACIAQAgBQAAiQEAIEQCAAAAAUcCAAAAAUhAAAAAAVQBAAAAAVUBAAAAAVYCAAAAAQEOAAArACAGRAIAAAABRwIAAAABSEAAAAABVAEAAAABVQEAAAABVgIAAAABAQ4AAC0AMAEOAAAtADAIAwAAegAgBQAAewAgRAIAcAAhRwIAcAAhSEAAbwAhVAEAbgAhVQEAbgAhVgIAcAAhAgAAAAUAIA4AADAAIAZEAgBwACFHAgBwACFIQABvACFUAQBuACFVAQBuACFWAgBwACECAAAAAwAgDgAAMgAgAgAAAAMAIA4AADIAIAMAAAAFACAVAAArACAWAAAwACABAAAABQAgAQAAAAMAIAUGAAB1ACAbAAB2ACAcAAB5ACAdAAB4ACAeAAB3ACAJQQAAXQAwQgAAOQAQQwAAXQAwRAIAVAAhRwIAVAAhSEAAVQAhVAEAUwAhVQEAUwAhVgIAVAAhAwAAAAMAIAEAADgAMBoAADkAIAMAAAADACABAAAEADACAAAFACABAAAACQAgAQAAAAkAIAMAAAAHACABAAAIADACAAAJACADAAAABwAgAQAACAAwAgAACQAgAwAAAAcAIAEAAAgAMAIAAAkAIAcDAAB0ACAEAABzACBEAQAAAAFFAQAAAAFGAgAAAAFHAgAAAAFIQAAAAAEBDgAAQQAgBUQBAAAAAUUBAAAAAUYCAAAAAUcCAAAAAUhAAAAAAQEOAABDADABDgAAQwAwBwMAAHIAIAQAAHEAIEQBAG4AIUUBAG4AIUYCAHAAIUcCAHAAIUhAAG8AIQIAAAAJACAOAABGACAFRAEAbgAhRQEAbgAhRgIAcAAhRwIAcAAhSEAAbwAhAgAAAAcAIA4AAEgAIAIAAAAHACAOAABIACADAAAACQAgFQAAQQAgFgAARgAgAQAAAAkAIAEAAAAHACAFBgAAaQAgGwAAagAgHAAAbQAgHQAAbAAgHgAAawAgCEEAAFIAMEIAAE8AEEMAAFIAMEQBAFMAIUUBAFMAIUYCAFQAIUcCAFQAIUhAAFUAIQMAAAAHACABAABOADAaAABPACADAAAABwAgAQAACAAwAgAACQAgCEEAAFIAMEIAAE8AEEMAAFIAMEQBAFMAIUUBAFMAIUYCAFQAIUcCAFQAIUhAAFUAIQ4GAABXACAdAABcACAeAABcACBJAQAAAAFKAQAAAARLAQAAAARMAQAAAAFNAQAAAAFOAQAAAAFPAQAAAAFQAQBbACFRAQAAAAFSAQAAAAFTAQAAAAENBgAAVwAgGwAAWgAgHAAAVwAgHQAAVwAgHgAAVwAgSQIAAAABSgIAAAAESwIAAAAETAIAAAABTQIAAAABTgIAAAABTwIAAAABUAIAWQAhCwYAAFcAIB0AAFgAIB4AAFgAIElAAAAAAUpAAAAABEtAAAAABExAAAAAAU1AAAAAAU5AAAAAAU9AAAAAAVBAAFYAIQsGAABXACAdAABYACAeAABYACBJQAAAAAFKQAAAAARLQAAAAARMQAAAAAFNQAAAAAFOQAAAAAFPQAAAAAFQQABWACEISQIAAAABSgIAAAAESwIAAAAETAIAAAABTQIAAAABTgIAAAABTwIAAAABUAIAVwAhCElAAAAAAUpAAAAABEtAAAAABExAAAAAAU1AAAAAAU5AAAAAAU9AAAAAAVBAAFgAIQ0GAABXACAbAABaACAcAABXACAdAABXACAeAABXACBJAgAAAAFKAgAAAARLAgAAAARMAgAAAAFNAgAAAAFOAgAAAAFPAgAAAAFQAgBZACEISQgAAAABSggAAAAESwgAAAAETAgAAAABTQgAAAABTggAAAABTwgAAAABUAgAWgAhDgYAAFcAIB0AAFwAIB4AAFwAIEkBAAAAAUoBAAAABEsBAAAABEwBAAAAAU0BAAAAAU4BAAAAAU8BAAAAAVABAFsAIVEBAAAAAVIBAAAAAVMBAAAAAQtJAQAAAAFKAQAAAARLAQAAAARMAQAAAAFNAQAAAAFOAQAAAAFPAQAAAAFQAQBcACFRAQAAAAFSAQAAAAFTAQAAAAEJQQAAXQAwQgAAOQAQQwAAXQAwRAIAVAAhRwIAVAAhSEAAVQAhVAEAUwAhVQEAUwAhVgIAVAAhB0EAAF4AMEIAACMAEEMAAF4AMEQCAFQAIVcBAFMAIVgBAFMAIVkBAFMAIQkHAABiACAIAABjACBBAABfADBCAAAQABBDAABfADBEAgBgACFXAQBhACFYAQBhACFZAQBhACEISQIAAAABSgIAAAAESwIAAAAETAIAAAABTQIAAAABTgIAAAABTwIAAAABUAIAVwAhC0kBAAAAAUoBAAAABEsBAAAABEwBAAAAAU0BAAAAAU4BAAAAAU8BAAAAAVABAFwAIVEBAAAAAVIBAAAAAVMBAAAAAQNaAAADACBbAAADACBcAAADACADWgAABwAgWwAABwAgXAAABwAgCgMAAGcAIAQAAGYAIEEAAGQAMEIAAAcAEEMAAGQAMEQBAGEAIUUBAGEAIUYCAGAAIUcCAGAAIUhAAGUAIQhJQAAAAAFKQAAAAARLQAAAAARMQAAAAAFNQAAAAAFOQAAAAAFPQAAAAAFQQABYACENAwAAZwAgBQAAYwAgQQAAaAAwQgAAAwAQQwAAaAAwRAIAYAAhRwIAYAAhSEAAZQAhVAEAYQAhVQEAYQAhVgIAYAAhXQAAAwAgXgAAAwAgCwcAAGIAIAgAAGMAIEEAAF8AMEIAABAAEEMAAF8AMEQCAGAAIVcBAGEAIVgBAGEAIVkBAGEAIV0AABAAIF4AABAAIAsDAABnACAFAABjACBBAABoADBCAAADABBDAABoADBEAgBgACFHAgBgACFIQABlACFUAQBhACFVAQBhACFWAgBgACEAAAAAAAFiAQAAAAEBYkAAAAABBWICAAAAAWgCAAAAAWkCAAAAAWoCAAAAAWsCAAAAAQUVAAC2AQAgFgAAvAEAIF8AALcBACBgAAC7AQAgZQAABQAgBRUAALQBACAWAAC5AQAgXwAAtQEAIGAAALgBACBlAAABACADFQAAtgEAIF8AALcBACBlAAAFACADFQAAtAEAIF8AALUBACBlAAABACAAAAAAAAUVAACuAQAgFgAAsgEAIF8AAK8BACBgAACxAQAgZQAAAQAgCxUAAHwAMBYAAIEBADBfAAB9ADBgAAB-ADBhAAB_ACBiAACAAQAwYwAAgAEAMGQAAIABADBlAACAAQAwZgAAggEAMGcAAIMBADAFAwAAdAAgRAEAAAABRQEAAAABRwIAAAABSEAAAAABAgAAAAkAIBUAAIcBACADAAAACQAgFQAAhwEAIBYAAIYBACABDgAAsAEAMAoDAABnACAEAABmACBBAABkADBCAAAHABBDAABkADBEAQAAAAFFAQBhACFGAgBgACFHAgBgACFIQABlACECAAAACQAgDgAAhgEAIAIAAACEAQAgDgAAhQEAIAhBAACDAQAwQgAAhAEAEEMAAIMBADBEAQBhACFFAQBhACFGAgBgACFHAgBgACFIQABlACEIQQAAgwEAMEIAAIQBABBDAACDAQAwRAEAYQAhRQEAYQAhRgIAYAAhRwIAYAAhSEAAZQAhBEQBAG4AIUUBAG4AIUcCAHAAIUhAAG8AIQUDAAByACBEAQBuACFFAQBuACFHAgBwACFIQABvACEFAwAAdAAgRAEAAAABRQEAAAABRwIAAAABSEAAAAABAxUAAK4BACBfAACvAQAgZQAAAQAgBBUAAHwAMF8AAH0AMGEAAH8AIGUAAIABADAAAAAAAAsVAACaAQAwFgAAnwEAMF8AAJsBADBgAACcAQAwYQAAnQEAIGIAAJ4BADBjAACeAQAwZAAAngEAMGUAAJ4BADBmAACgAQAwZwAAoQEAMAsVAACRAQAwFgAAlQEAMF8AAJIBADBgAACTAQAwYQAAlAEAIGIAAIABADBjAACAAQAwZAAAgAEAMGUAAIABADBmAACWAQAwZwAAgwEAMAUEAABzACBEAQAAAAFFAQAAAAFGAgAAAAFIQAAAAAECAAAACQAgFQAAmQEAIAMAAAAJACAVAACZAQAgFgAAmAEAIAEOAACtAQAwAgAAAAkAIA4AAJgBACACAAAAhAEAIA4AAJcBACAERAEAbgAhRQEAbgAhRgIAcAAhSEAAbwAhBQQAAHEAIEQBAG4AIUUBAG4AIUYCAHAAIUhAAG8AIQUEAABzACBEAQAAAAFFAQAAAAFGAgAAAAFIQAAAAAEGBQAAiQEAIEQCAAAAAUhAAAAAAVQBAAAAAVUBAAAAAVYCAAAAAQIAAAAFACAVAAClAQAgAwAAAAUAIBUAAKUBACAWAACkAQAgAQ4AAKwBADALAwAAZwAgBQAAYwAgQQAAaAAwQgAAAwAQQwAAaAAwRAIAAAABRwIAYAAhSEAAZQAhVAEAYQAhVQEAYQAhVgIAYAAhAgAAAAUAIA4AAKQBACACAAAAogEAIA4AAKMBACAJQQAAoQEAMEIAAKIBABBDAAChAQAwRAIAYAAhRwIAYAAhSEAAZQAhVAEAYQAhVQEAYQAhVgIAYAAhCUEAAKEBADBCAACiAQAQQwAAoQEAMEQCAGAAIUcCAGAAIUhAAGUAIVQBAGEAIVUBAGEAIVYCAGAAIQVEAgBwACFIQABvACFUAQBuACFVAQBuACFWAgBwACEGBQAAewAgRAIAcAAhSEAAbwAhVAEAbgAhVQEAbgAhVgIAcAAhBgUAAIkBACBEAgAAAAFIQAAAAAFUAQAAAAFVAQAAAAFWAgAAAAEEFQAAmgEAMF8AAJsBADBhAACdAQAgZQAAngEAMAQVAACRAQAwXwAAkgEAMGEAAJQBACBlAACAAQAwAAACAwAAqwEAIAUAAKkBACACBwAAqAEAIAgAAKkBACAFRAIAAAABSEAAAAABVAEAAAABVQEAAAABVgIAAAABBEQBAAAAAUUBAAAAAUYCAAAAAUhAAAAAAQUIAACnAQAgRAIAAAABVwEAAAABWAEAAAABWQEAAAABAgAAAAEAIBUAAK4BACAERAEAAAABRQEAAAABRwIAAAABSEAAAAABAwAAABAAIBUAAK4BACAWAACzAQAgBwAAABAAIAgAAJABACAOAACzAQAgRAIAcAAhVwEAbgAhWAEAbgAhWQEAbgAhBQgAAJABACBEAgBwACFXAQBuACFYAQBuACFZAQBuACEFBwAApgEAIEQCAAAAAVcBAAAAAVgBAAAAAVkBAAAAAQIAAAABACAVAAC0AQAgBwMAAIgBACBEAgAAAAFHAgAAAAFIQAAAAAFUAQAAAAFVAQAAAAFWAgAAAAECAAAABQAgFQAAtgEAIAMAAAAQACAVAAC0AQAgFgAAugEAIAcAAAAQACAHAACPAQAgDgAAugEAIEQCAHAAIVcBAG4AIVgBAG4AIVkBAG4AIQUHAACPAQAgRAIAcAAhVwEAbgAhWAEAbgAhWQEAbgAhAwAAAAMAIBUAALYBACAWAAC9AQAgCQAAAAMAIAMAAHoAIA4AAL0BACBEAgBwACFHAgBwACFIQABvACFUAQBuACFVAQBuACFWAgBwACEHAwAAegAgRAIAcAAhRwIAcAAhSEAAbwAhVAEAbgAhVQEAbgAhVgIAcAAhAwYABQcGAggMAwMDAAEFCgMGAAQCAwABBAACAQULAAIHDQAIDgAAAAAFBgAKGwALHAAMHQANHgAOAAAAAAAFBgAKGwALHAAMHQANHgAOAQMAAQEDAAEFBgATGwAUHAAVHQAWHgAXAAAAAAAFBgATGwAUHAAVHQAWHgAXAgMAAQQAAgIDAAEEAAIFBgAcGwAdHAAeHQAfHgAgAAAAAAAFBgAcGwAdHAAeHQAfHgAgCQIBCg8BCxIBDBMBDRQBDxYBEBgGERkHEhsBEx0GFB4IFx8BGCABGSEGHyQJICUPISYCIicCIygCJCkCJSoCJiwCJy4GKC8QKTECKjMGKzQRLDUCLTYCLjcGLzoSMDsYMTwDMj0DMz4DND8DNUADNkIDN0QGOEUZOUcDOkkGO0oaPEsDPUwDPk0GP1AbQFEh"
 }
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
@@ -45,10 +45,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.js"),
+  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.mjs"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.js")
+    const { wasm } = await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.mjs")
     return await decodeBase64AsWasm(wasm)
   },
 
@@ -71,7 +71,7 @@ export interface PrismaClientConstructor {
    *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
    * })
    * // Fetch zero or more Users
-   * const users = await prisma.users.findMany()
+   * const users = await prisma.user.findMany()
    * ```
    * 
    * Read more in our [docs](https://pris.ly/d/client).
@@ -95,7 +95,7 @@ export interface PrismaClientConstructor {
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
  * // Fetch zero or more Users
- * const users = await prisma.users.findMany()
+ * const users = await prisma.user.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -189,14 +189,34 @@ export interface PrismaClient<
   }>>
 
       /**
-   * `prisma.users`: Exposes CRUD operations for the **users** model.
+   * `prisma.user`: Exposes CRUD operations for the **User** model.
     * Example usage:
     * ```ts
     * // Fetch zero or more Users
-    * const users = await prisma.users.findMany()
+    * const users = await prisma.user.findMany()
     * ```
     */
-  get users(): Prisma.usersDelegate<ExtArgs, { omit: OmitOpts }>;
+  get user(): Prisma.UserDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.post`: Exposes CRUD operations for the **Post** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Posts
+    * const posts = await prisma.post.findMany()
+    * ```
+    */
+  get post(): Prisma.PostDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.comment`: Exposes CRUD operations for the **Comment** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Comments
+    * const comments = await prisma.comment.findMany()
+    * ```
+    */
+  get comment(): Prisma.CommentDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {
